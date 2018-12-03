@@ -1,16 +1,17 @@
 #include "minget.h"
 
 //replace args with struct
-int minget(char* imagefile, char* srcpath, char* dstpath, int part, int subpart, int verbose) {
+int minget(struct fsinfo fs) {
 	FILE * srcFile;
 	FILE * destFile;
-	min_inode * srcIode;
-	min_inode * destInode;
+	struct min_inode * srcIode;
+	struct min_inode * destInode;
 
 	//copy contents of file to destination, or stdout
-	if (!dstpath)
-		destination = stdout;
-
+	if (!fs.dstpath) {
+		destFile = stdout;
+	}
+	
 	/*if partitioing, check partition validity
 	 follow directory path, check if filepath leads to a file,
 	 if it leads to a directory abort*/
@@ -18,7 +19,8 @@ int minget(char* imagefile, char* srcpath, char* dstpath, int part, int subpart,
 	return 0;
 }
 
-int main(int args, char** argv) {
+int main(int argc, char** argv) {
+	struct fsinfo fs = parser(argc, argv, TRUE);
 	//insert parser here
 	//call minget
 	return 0;

@@ -75,13 +75,13 @@ struct fsinfo {
 
 struct min_inode {
     char* filename;
-    uint size;
-    uint* start;
-    uint16 t mode;
+    int size;
+    void* start;
+    uint16_t mode;
 };
 
 int partitionTable(int part);
-int fileValidity(;
-min_inode* traverseFiles(int part, int subpart, char* imgfile, char* srcpath);
+int fileValidity(char * file);
+struct min_inode* traverseFiles(int part, int subpart, char* imgfile, char* srcpath);
 
 #endif

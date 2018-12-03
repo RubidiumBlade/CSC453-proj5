@@ -1,20 +1,21 @@
 #include "minixFiles.h"
 
-//when using partitioning, make sure partition table is valid
+/* when using partitioning, make sure partition table is valid */
 int partitionValidity(int part) {
 	return 0;
 }
 
-//check to see if the found file is actually a file
+/* check to see if the found file is actually a file */
 int fileValidity(char* file) {
 	return 0;
 }
 
-//traverse the filesystem until you find the requested file/directory
-min_inode* traverseFiles(int part, int subpart, char* imgfile, char* srcpath) {
+/* traverse the filesystem until you find the requested file/directory */
+struct min_inode* traverseFiles(int part, int subpart, char* imgfile, char* srcpath) {
 	return 0;
 }
 
+/* Takes in the arguments and parses them */
 struct fsinfo parser(int argc, const char * argv[], int get) {
     struct fsinfo fs;
     char* opstring = "vp:s:";
