@@ -53,7 +53,15 @@ struct inode {
     uint32 t unused;
 };
 
+struct min_inode {
+    char* filename;
+    uint size;
+    uint* start;
+    uint16 t mode;
+};
+
 int partitionTable(int part);
-int fileValidity();
+int fileValidity(;
+min_inode* traverseFiles(int part, int subpart, char* imgfile, char* srcpath);
 
 #endif
