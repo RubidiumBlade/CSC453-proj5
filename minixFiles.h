@@ -53,5 +53,7 @@ struct inode {
     uint32 t unused;
 };
 
+int partitionTable(int part);
+int fileValidity();
 
 #endif
