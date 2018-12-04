@@ -1,7 +1,19 @@
 #include "minixFiles.h"
 
-/* when using partitioning, make sure partition table is valid */
-int partitionValidity(int part) {
+/* when using partitioning, make sure partition table is valid 
+ * return table if valid*/
+struct partitionTable partitionValidity(int part, unint offset) {
+    uint firstPartition = 0x1BE + offset;
+    uint currentPartition = firstParttition;
+
+    //loop through partitions
+    for (int i=0; i < part; i++)
+        currentPartition += sizeof(partitionTable);
+
+    //check to see if table is valid, if not exit
+
+    //load partition table into struct
+
 	return 0;
 }
 
@@ -12,6 +24,9 @@ int fileValidity(char* file) {
 
 /* traverse the filesystem until you find the requested file/directory */
 struct min_inode traverseFiles(int part, int subpart, char* imgfile, char* srcpath) {
+    //if part call partitionTable(part, 0)
+    //if subpart call partitionTable(subpart, partition.start)
+    
 	return 0;
 }
 

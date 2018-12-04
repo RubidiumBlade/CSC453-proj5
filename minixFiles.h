@@ -80,7 +80,7 @@ struct min_inode {
     uint16_t mode;
 };
 
-int partitionTable(int part);
+struct partitionTable partitionValidity(int part);
 int fileValidity(char * file);
 struct min_inode* traverseFiles(int part, int subpart, char* imgfile, char* srcpath);
 
