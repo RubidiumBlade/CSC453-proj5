@@ -74,9 +74,9 @@ struct fsinfo {
 };
 
 struct min_inode {
-    char* filename;
+    char * filename;
     int size;
-    void* start;
+    long int start;
     uint16_t mode;
 };
 

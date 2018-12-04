@@ -11,7 +11,7 @@ int fileValidity(char* file) {
 }
 
 /* traverse the filesystem until you find the requested file/directory */
-struct min_inode* traverseFiles(int part, int subpart, char* imgfile, char* srcpath) {
+struct min_inode traverseFiles(int part, int subpart, char* imgfile, char* srcpath) {
 	return 0;
 }
 
