@@ -2,10 +2,10 @@
 
 /* when using partitioning, make sure partition table is valid 
  * return table if valid*/
-struct partitionTable partitionValidity(int part, unint offset) {
-    uint firstPartition = 0x1BE + offset;
-    uint validityBits = firstPartition + 64;
-    uint currentPartition = firstParttition;
+struct partitionTable partitionValidity(int part, unsigned int offset) {
+    unsigned int firstPartition = 0x1BE + offset;
+    unsigned int validityBits = firstPartition + 64;
+    unsigned int currentPartition = firstParttition;
 
     //check to see if partition table it valid, if not exit
 
@@ -24,7 +24,7 @@ int fileValidity(char* file) {
 }
 
 /* traverse the filesystem until you find the requested file/directory */
-struct min_inode traverseFiles(int part, int subpart, char* imgfile, char* srcpath) {
+struct min_inode traverseFiles(struct fsinfo fs) {
     //if part call partitionTable(part, 0)
     //if subpart call partitionTable(subpart, partition.start)
 
@@ -68,6 +68,7 @@ struct fsinfo parser(int argc, const char * argv[], int get) {
         }
     }
     fs.imagefile = argv[optind];
+    fs.diskimage = fopen(fs.imagefile, 'r');
     if (get){
         fs.srcpath = argv[optind + 1];
         if (optind + 2 < argc) {
@@ -85,4 +86,34 @@ struct fsinfo parser(int argc, const char * argv[], int get) {
         fs.srcpath = NULL;
         fs.dstpath = NULL;
     }
+}
+
+int isdir(struct min_inode amiadir){
+    if (FILE_TYPE_MASK & amiadir.mode == DIRECTORY_FILE_MASK){
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
+int isregfile(struct min_inode amiregfile){
+    if (FILE_TYPE_MASK & amiregfile.mode == REGULAR_FILE_MASK){
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
+int read_directory(struct fsinfo fs, struct inode * inode_table, struct min_inode file, struct min_inode * found_files){
+    struct dir_entry * collected_file = collect_file(file);
+    int i, inode_num;
+    found_files = malloc(file.size);
+    for (i = 0; i < file.size / sizeof(struct dir_entry); i++){
+        strncpy(found_files[i].filename, collected_file[i].name, 60);
+        inode_num = collected_file[i].inode;
+        found_files[i].mode = inode_table[inode_num].mode;
+        found_files[i].size = inode_table[inode_num].size;
+        found_files[i].inum = inode_num;
+    }
+    return file.size / sizeof(struct dir_entry);
 }

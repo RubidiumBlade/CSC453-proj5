@@ -6,15 +6,31 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <string.h>
 
 #define FALSE 0
 #define TRUE 1
 
+/* file type masks */
+
+#define FILE_TYPE_MASK 0170000
+#define REGULAR_FILE_MASK 0100000
+#define DIRECTORY_FILE_MASK 0040000
+
 #define DIRECT_ZONES 7
 
 struct fsinfo parser(int argc, const char * argv[], int get);
+int partitionTable(int part);
+int fileValidity(char * file);
+struct min_inode traverseFiles(struct fsinfo fs);
+int isdir(struct min_inode amiadir); /* done */
+int isregfile(struct min_inode amiregfile); /* done */
+int read_directory(struct fsinfo fs, struct inode * inode_table, struct min_inode file, struct min_inode * found_files); /* done */
+int printfile(struct min_inode file, int print_filename);
+void * collect_file(struct min_inode);
+struct inode * get_inode_table(struct fsinfo);
 
-struct partitionTable {
+struct __attribute__ ((__packed__)) partitionTable {
     uint8_t bootind;
     uint8_t start_head;
     uint8_t start_sec;
@@ -27,7 +43,8 @@ struct partitionTable {
     uint32_t size;
 };
 
-struct superblock { /* Minix Version 3 Superblock
+struct __attribute__ ((__packed__)) superblock { 
+                    /* Minix Version 3 Superblock
                      * this structure found in fs/super.h
                      * in minix 3.1.1
                      */
@@ -70,10 +87,11 @@ struct fsinfo {
     int part;
     int subpart;
     int verbose;
-
+    FILE * diskimage;
 };
 
 struct min_inode {
+<<<<<<< HEAD
     char * filename;
     int size;
     long int start;
@@ -83,5 +101,17 @@ struct min_inode {
 struct partitionTable partitionValidity(int part);
 int fileValidity(char * file);
 struct min_inode* traverseFiles(int part, int subpart, char* imgfile, char* srcpath);
+=======
+    char filename[60];
+    int size;
+    int inum;
+    uint16_t mode;
+};
+
+struct __attribute__ ((__packed__)) dir_entry {
+    uint32_t inode;
+    unsigned char name[60];
+};
+>>>>>>> dirstuff
 
 #endif
