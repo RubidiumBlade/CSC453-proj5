@@ -91,17 +91,6 @@ struct fsinfo {
 };
 
 struct min_inode {
-<<<<<<< HEAD
-    char * filename;
-    int size;
-    long int start;
-    uint16_t mode;
-};
-
-struct partitionTable partitionValidity(int part);
-int fileValidity(char * file);
-struct min_inode* traverseFiles(int part, int subpart, char* imgfile, char* srcpath);
-=======
     char filename[60];
     int size;
     int inum;
@@ -112,6 +101,5 @@ struct __attribute__ ((__packed__)) dir_entry {
     uint32_t inode;
     unsigned char name[60];
 };
->>>>>>> dirstuff
 
 #endif

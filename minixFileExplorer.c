@@ -2,20 +2,36 @@
 
 /* when using partitioning, make sure partition table is valid 
  * return table if valid*/
-struct partitionTable partitionValidity(int part, unsigned int offset) {
+struct partitionTable partitionValidity(File * diskImage, int part,
+                                         unsigned int offset) {
     unsigned int firstPartition = 0x1BE + offset;
-    unsigned int validityBits = firstPartition + 64;
+    unsigned int validityBits = firstPartition + sizeof(partitionTable);
     unsigned int currentPartition = firstParttition;
+    //byte values that indicate if partition table is valid
+    const unsigned int validityByte1 = 0x55;
+    const unsigned int validityByte2 = 0xAA;
+    void * partTable;
+    void * testByte1;
+    void * testByte2;
 
     //check to see if partition table it valid, if not exit
+    fseek(diskimage, validityBits, SET_SEEK);
+    fread(testByte1, sizeof(int), 1, diskimage);
+    if ((int)testByte1 != validityByte1)
+        exit(EXIT_FAILURE);
+
+    fread(testByte2, sizeof(int), 1, diskimage);
+    if((int)testByte2 != validityByte2)
+        exit(EXIT_FAILURE);
 
     //loop through partitions
     for (int i=0; i < part; i++)
         currentPartition += sizeof(partitionTable);
 
     //load partition table into struct
-
-	return 0;
+    fseek(diskimage, currentPartition, SET_SEEK);
+    fread(partTable, sizeof(partitionTable), 1, diskimage);
+    return (partitionTable) partTable;
 }
 
 /* check to see if the found file is actually a file */

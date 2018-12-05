@@ -2,7 +2,6 @@
 
 //replace args with struct
 int minget(struct fsinfo fs) {
-	FILE * srcFile;
 	FILE * destFile;
 	struct min_inode srcInode;
 
@@ -19,23 +18,13 @@ int minget(struct fsinfo fs) {
     /*check if filepath leads to a file,
 	 if it leads to a directory abort*/
 	if (isDir(srcInode)) {
-		//malloc size of file; pray that your malloc isn't somehow being used
-		char * fileContents = malloc(srcInode.size);
-
-		//make calls to source less verbose
-		srcFile = fs.diskimage;
-
-		//move stream position to where it needs to be
-		fseek(srcFile, srcInode.start, SEEK_SET);
-
 		/*read to fileContents from source,
 		 *write to destination from fileContents*/
-		fread(fileContents, srcInode.size, 1, srcFile);
+		void * fileContents = collect_file(srcInode, NULL);
 		fwrite(fileContents, srcInode.size, 1, destFile);
 
 		//free stuff; close stuff
 		fclose(destFile);
-		fclose(srcFile);
 		free(fileContents);
 
 		return 0;
