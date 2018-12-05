@@ -4,13 +4,14 @@
  * return table if valid*/
 struct partitionTable partitionValidity(int part, unint offset) {
     uint firstPartition = 0x1BE + offset;
+    uint validityBits = firstPartition + 64;
     uint currentPartition = firstParttition;
+
+    //check to see if partition table it valid, if not exit
 
     //loop through partitions
     for (int i=0; i < part; i++)
         currentPartition += sizeof(partitionTable);
-
-    //check to see if table is valid, if not exit
 
     //load partition table into struct
 
@@ -26,7 +27,7 @@ int fileValidity(char* file) {
 struct min_inode traverseFiles(int part, int subpart, char* imgfile, char* srcpath) {
     //if part call partitionTable(part, 0)
     //if subpart call partitionTable(subpart, partition.start)
-    
+
 	return 0;
 }
 
