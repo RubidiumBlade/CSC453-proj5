@@ -23,7 +23,7 @@ int printVerbose(void * printInfo_v, int mode) {
 			fprintf(stderr, "   pad3: %d\n", printInfo_su->pad3);
 			fprintf(stderr, "   blocksize: %d\n", printInfo_su->blocksize);
 			fprintf(stderr, "   subversion: %d\n\n", printInfo_su->subversion);
-                        break;
+            break;
 
 		case PARTITION :
 			printInfo_p = (struct partitionTable *) printInfo_v;
@@ -37,7 +37,7 @@ int printVerbose(void * printInfo_v, int mode) {
 			fprintf(stderr, "   end_cyl: %d\n", printInfo_p->end_cyl);
 			fprintf(stderr, "   lFirst: %d\n", printInfo_p->lFirst);
 			fprintf(stderr, "   size: %d\n\n", printInfo_p->size);
-                        break;
+            break;
 
 
 		case SUBPARTITION :
@@ -57,15 +57,16 @@ int printVerbose(void * printInfo_v, int mode) {
 		case INODE :
 			printInfo_i = (struct inode*) printInfo_v;
 			fprintf(stderr, "inode contents:\nStoredFields:\n");
+			fprintf(stderr, "   mode: %x\n", printInfo_i->mode);
 			fprintf(stderr, "   links: %d\n", printInfo_i->links);
 			fprintf(stderr, "   uid: %d\n", printInfo_i->uid);
 			fprintf(stderr, "   gid: %d\n", printInfo_i->gid);
 			fprintf(stderr, "   size: %d\n", printInfo_i->size);
-                        time = printInfo_i->atime;
+            time = printInfo_i->atime;
 			fprintf(stderr, "   atime: %s\n", ctime(&time));
-                        time = printInfo_i->mtime;
+            time = printInfo_i->mtime;
 			fprintf(stderr, "   mtime: %s\n", ctime(&time));
-                        time = printInfo_i->ctime;
+            time = printInfo_i->ctime;
 			fprintf(stderr, "   ctime: %s\n", ctime(&time));
 			for (i=0; i<DIRECT_ZONES; i++)
 				fprintf(stderr, "   zone[%d]: %d\n", i, printInfo_i->zone[i]);
@@ -73,13 +74,13 @@ int printVerbose(void * printInfo_v, int mode) {
 			fprintf(stderr, "   indirect: %d\n", printInfo_i->indirect);
 			fprintf(stderr, "   two_indirect: %d\n", printInfo_i->two_indirect);
 			fprintf(stderr, "   unused: %d\n", printInfo_i->unused);
-                        break;
+            break;
 
 
 		default :
 			fprintf(stderr, "Error: invalid mode given to print verbose...\n");
 			exit(EXIT_FAILURE);
-                        break;
+            break;
 	}
 
 	return 0;
