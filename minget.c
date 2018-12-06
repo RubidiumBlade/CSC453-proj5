@@ -1,4 +1,4 @@
-#include "minget.h"
+#include "minixFiles.h"
 
 //replace args with struct
 int minget(struct fsinfo fs) {

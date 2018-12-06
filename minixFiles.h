@@ -27,8 +27,15 @@
 #define USR_W 0000002
 #define USR_X 0000001
 
+//mode values for verbose
+#define SUPERBLOCK 1
+#define PARTITION 2
+#define SUBPARTITION 3
+#define INODE 4
+
 #define DIRECT_ZONES 7
 
+int printVerbose(void * printInfo, int mode);
 struct fsinfo parser(int argc, const char * argv[], int get);
 struct partitionTable partitionTable(int part, unsigned int offset);
 int fileValidity(char * file);

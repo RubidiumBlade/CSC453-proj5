@@ -48,12 +48,18 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
         partTable = partitionValidity(fs->diskimage, fs->part, 0);
         //multiply by 512 because that's the size of a sector
         startByte = partTable.lFirst * 512;
+
+        if(fs.verbose)
+            printVerbose(&partTable, PARTITION);
     }
 
     if (fs->subpart != NULL) {
         partTable = partitionValidity(fs->diskimage, fs->subpart, startByte);
         //multiply by 512 because that's the size of a sector
         startByte = partTable.lFirst * 512;
+
+        if(fs.verbose)
+            printVerbose(&partTable, SUBPARTITION);
     }
 
     //find superblock, start loc plus 1024
@@ -67,6 +73,10 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
     fs->inode_table_start_block = sblock->i_blocks + sblock->z_blocks + 2;
     fs->blocksize = sblock->blocksize;
     fs->zonesize = sblock->blocksize << sblock->log_zone_size;
+
+    //print verbose info if needed
+    if(fs.verbose)
+            printVerbose(sblock, SUPERBLOCK);
 
     //find inode table and first inode
     struct inode * inodeTable = get_inode_table(*fs);
@@ -111,6 +121,12 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
                 exit(EXIT_FAILURE);
             }
         }
+    }
+
+    if (fs.verbose) {
+        int inum = currentInode.inum;
+        inode verboseInode = inodeTable[inum];
+        printVerbose(&verboseInode, INODE);
     }
 
 	return currentInode;
