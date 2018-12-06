@@ -124,7 +124,7 @@ int isregfile(struct min_inode amiregfile){
 }
 
 int read_directory(struct fsinfo fs, struct inode * inode_table, struct min_inode file, struct min_inode * found_files){
-    struct dir_entry * collected_file = collect_file(file);
+    struct dir_entry * collected_file = collect_file(file, fs, inode_table);
     int i, inode_num;
     found_files = malloc(file.size);
     for (i = 0; i < file.size / sizeof(struct dir_entry); i++){
@@ -213,17 +213,70 @@ void ext_fsinfo(struct fsinfo * fs){
 
 void * collect_file(struct min_inode file, struct fsinfo fs, struct inode * inode_table){
     void * foundfile = malloc(file.size), * dummy = malloc(fs.zonesize), * pos = foundfile;
-    int bytesleft, blocknum = 0;
+    int bytesleft, zonenum = 0, num_ino_idi = fs.zonesize / sizeof(uint32_t), hole;
     struct inode * inode_actual = &inode_table[file.inum];
+    uint32_t * indirect_table = malloc(fs.zonesize);
     if (inode_table == NULL){
         inode_table = get_inode_table(fs);
     }
-    for (bytesleft = file.size; bytesleft > fs.blocksize; bytesleft -= fs.blocksize){
-        if (blocknum < 7){
-            fseek(fs.diskimage, (inode_actual->zone[blocknum] * fs.zonesize) + fs->offset, SEEK_SET);
-        } else if (blocknum <  / fs.zonesize)
-        fread(dummy, fs.zonesize, 1, fs.diskimage);
-        memcpy(foundfile, dummy, fs.zonesize);
+    
+    for (bytesleft = file.size; bytesleft > 0; bytesleft -= fs.zonesize){
+        hole = FALSE;
+        if (zonenum < 7){ /* if in direct zones */
+            /* just seek to the correct zone */
+            if (inode_actual->zone[zonenum]){
+                fseek(fs.diskimage, (inode_actual->zone[zonenum] * fs.zonesize) + fs.offset, SEEK_SET);
+            } else {
+                hole = TRUE;
+            }
+        } else if (zonenum < (num_ino_idi + 7)){ /* in indirect zones */
+            /* get the indierct zone */
+            fseek(fs.diskimage, (inode_actual->indirect * fs.zonesize) + fs.offset, SEEK_SET);
+            fread(indirect_table, fs.zonesize, 1, fs.diskimage);
+            if (indirect_table[zonenum - 7]) {
+                fseek(fs.diskimage, (indirect_table[zonenum - 7] * fs.zonesize) + fs.offset, SEEK_SET);
+            } else {
+                hole = TRUE;
+            }
+        } else if ((zonenum < pow(num_ino_idi, 2) + 7)){ /* in double indierct zones */
+            fseek(fs.diskimage, (inode_actual->two_indirect * fs.zonesize) + fs.offset, SEEK_SET);
+            fread(indirect_table, fs.zonesize, 1, fs.diskimage);
+            fseek(fs.diskimage, (indirect_table[(zonenum - 7 - num_ino_idi) / num_ino_idi] * fs.zonesize) + fs.offset, SEEK_SET);
+            fread(indirect_table, fs.zonesize, 1, fs.diskimage);
+            if (indirect_table[(zonenum - 7 - num_ino_idi) % num_ino_idi]) {
+                fseek(fs.diskimage, (indirect_table[(zonenum - 7 - num_ino_idi) % num_ino_idi] * fs.zonesize) + fs.offset, SEEK_SET);
+            } else {
+                hole = TRUE;
+            }
+        } else {
+            fprintf(stderr, "Oversized file. Aborting...");
+            exit(EXIT_FAILURE);
+        }
+        if (hole == FALSE){
+            if (bytesleft > fs.zonesize){
+                fread(dummy, fs.zonesize, 1, fs.diskimage);
+                memcpy(pos, dummy, fs.zonesize); 
+            } else {
+                fread(dummy, bytesleft, 1, fs.diskimage);
+                memcpy(pos, dummy, bytesleft);
+            }
+        } else {
+            if (bytesleft > fs.zonesize){
+                memset(pos, 0, fs.zonesize); 
+            } else {
+                memset(pos, 0, bytesleft);
+            }
+        }
+        zonenum += 1;
+        pos += fs.zonesize;
     }
-        
+
+    return foundfile;    
+}
+
+struct inode * get_inode_table(struct fsinfo fs){
+    struct inode * inode_table = malloc(sizeof(struct inode) * fs.num_inodes);
+    fseek(fs.diskimage, (fs.inode_table_start_block * fs.blocksize) + fs.offset, SEEK_SET);
+    fread(inode_table, fs.num_inodes * 64, 1, fs.diskimage);
+    return inode_table;
 }

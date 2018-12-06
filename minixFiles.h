@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <math.h>
 
 #define FALSE 0
 #define TRUE 1
@@ -35,10 +36,10 @@ struct min_inode * traverseFiles(struct fsinfo fs);
 int isdir(struct min_inode amiadir); /* done */
 int isregfile(struct min_inode amiregfile); /* done */
 int read_directory(struct fsinfo fs, struct inode * inode_table, struct min_inode file, struct min_inode * found_files); /* done */
-void printfile(struct min_inode file, int print_filename);
-void * collect_file(struct min_inode file, struct fsinfo * inode_table);
-struct inode * get_inode_table(struct fsinfo fs);
-void ext_fsinfo(struct fsinfo * fs);
+void printfile(struct min_inode file, int print_filename); /* printfile */
+void * collect_file(struct min_inode file, struct fsinfo fs, struct inode * inode_table); /* done */
+struct inode * get_inode_table(struct fsinfo fs); /* done */
+void ext_fsinfo(struct fsinfo * fs); /* depricated */
 
 struct __attribute__ ((__packed__)) partitionTable {
     uint8_t bootind;
