@@ -9,7 +9,7 @@ int main(int argc, const char* argv[]){
 
     inode_table = get_inode_table(fs);
 
-    struct min_inode file_me = traverseFiles(fs);
+    struct min_inode file_me = traverseFiles(&fs);
 
     if (isdir(file_me)){
         numfiles = read_directory(fs, inode_table, file_me, files);

@@ -16,19 +16,29 @@
 #define FILE_TYPE_MASK 0170000
 #define REGULAR_FILE_MASK 0100000
 #define DIRECTORY_FILE_MASK 0040000
+#define OWNR_R 0000400
+#define OWNR_W 0000200
+#define OWNR_X 0000100
+#define GRP_R 0000040
+#define GRP_W 0000020
+#define GRP_X 0000010
+#define USR_R 0000004
+#define USR_W 0000002
+#define USR_X 0000001
 
 #define DIRECT_ZONES 7
 
 struct fsinfo parser(int argc, const char * argv[], int get);
-int partitionTable(int part);
+struct partitionTable partitionTable(int part, unsigned int offset);
 int fileValidity(char * file);
-struct min_inode traverseFiles(struct fsinfo fs);
+struct min_inode * traverseFiles(struct fsinfo fs);
 int isdir(struct min_inode amiadir); /* done */
 int isregfile(struct min_inode amiregfile); /* done */
 int read_directory(struct fsinfo fs, struct inode * inode_table, struct min_inode file, struct min_inode * found_files); /* done */
-int printfile(struct min_inode file, int print_filename);
-void * collect_file(struct min_inode);
-struct inode * get_inode_table(struct fsinfo);
+void printfile(struct min_inode file, int print_filename);
+void * collect_file(struct min_inode file, struct fsinfo * inode_table);
+struct inode * get_inode_table(struct fsinfo fs);
+void ext_fsinfo(struct fsinfo * fs);
 
 struct __attribute__ ((__packed__)) partitionTable {
     uint8_t bootind;
@@ -88,6 +98,11 @@ struct fsinfo {
     int subpart;
     int verbose;
     FILE * diskimage;
+    int num_inodes;
+    int inode_table_start_block;
+    int blocksize;
+    int zonesize;
+    int offset;
 };
 
 struct min_inode {
