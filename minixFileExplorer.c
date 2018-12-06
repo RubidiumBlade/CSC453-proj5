@@ -17,12 +17,16 @@ struct partitionTable partitionValidity(File * diskImage, int part,
     //check to see if partition table it valid, if not exit
     fseek(diskimage, validityBits, SET_SEEK);
     fread(testByte1, sizeof(int), 1, diskimage);
-    if ((int)testByte1 != validityByte1)
+    if ((int)testByte1 != validityByte1) {
+        fprintf(stderr, "Partition Table is invalid!\n");
         exit(EXIT_FAILURE);
+    }
 
     fread(testByte2, sizeof(int), 1, diskimage);
-    if((int)testByte2 != validityByte2)
+    if((int)testByte2 != validityByte2) {
+        fprintf(stderr, "Partition Table is invalid!\n");
         exit(EXIT_FAILURE);
+    }
 
     //loop through partitions
     for (int i=0; i < part; i++)
@@ -43,8 +47,73 @@ int fileValidity(char* file) {
 struct min_inode traverseFiles(struct fsinfo fs) {
     //if part call partitionTable(part, 0)
     //if subpart call partitionTable(subpart, partition.start)
+    partitionTable partTable;
+    unsigned int startByte = 0;
+    if (fs.part != NULL) {
+        partTable = partitionValidity(fs.diskimage, fs.part, 0);
+        //multiply by 512 because that's the size of a sector
+        startByte = partTable.lFirst * 512;
+    }
 
-	return 0;
+    if (fs.subpart != NULL) {
+        partTable = partitionValidity(fs.diskimage, fs.subpart, startByte);
+        //multiply by 512 because that's the size of a sector
+        startByte = partTable.lFirst * 512;
+    }
+
+    //find superblock, start loc plus 1024
+    startByte += 1024;
+
+    //fill superblock struct, and relevant info in fsinfo struct
+    superblock * sblock;
+    fseek(fs.diskimage, startByte, SET_SEEK);
+    fread(superblock, sizeof(superblock), 1, fs.diskimage);
+    fs.num_inodes = sblock->ninodes;
+    fs.inode_table_start_block = sblock->i_blocks + sblock->z_blocks + 2;
+    fs.blocksize = sblock->blocksize;
+    fs.zone = sblock->blocksize << sblock->log_zone_size;
+
+    //find inode table and first inode
+    inode * inodeTable = get_inode_table(fs);
+    inode * files;
+    inode currentInode = inodeTable[1];
+    int numFiles;
+    char * pathName;
+
+    //follow the filepath
+    while(pathName = strtok(fs.filepath, "/")) {
+        //follow inode to driectory, follow pathname filename inode
+        //keep going until you get NULL for pathname
+        //check to make inode num is >1 and <numinodes
+        if (isdir(currentInode)) {
+            fprintf(stderr, "Current inode is not a directory!\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (*pathName) {
+            numFiles = read_directory(fs, inodeTable, currentInode, files);
+
+            //find inode with corresponding pathname
+            for (int i=0; i < numFiles; i++) {
+                if(!strcmp(pathname, files[i].filename, 60)) {
+                    currentInode = files[i];
+                    break;
+                }
+            }
+
+            if (i == numFiles) {
+                fprintf(stderr, "File or directory not found!\n");
+                exit(EXIT_FAILURE);
+            }
+
+            if (currentInode.inum < 1 || currentInode.inum >= numinodes) {
+                fprintf(stderr, "Current inode is illegal!\n");
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+
+	return currentInode;
 }
 
 /* Takes in the arguments and parses them */
