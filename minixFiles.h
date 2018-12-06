@@ -8,6 +8,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 
 #define FALSE 0
 #define TRUE 1
@@ -34,19 +35,6 @@
 #define INODE 4
 
 #define DIRECT_ZONES 7
-
-int printVerbose(void * printInfo, int mode);
-struct fsinfo parser(int argc, const char * argv[], int get);
-struct partitionTable partitionTable(int part, unsigned int offset);
-int fileValidity(char * file);
-struct min_inode traverseFiles(struct fsinfo * fs);
-int isdir(struct min_inode amiadir); /* done */
-int isregfile(struct min_inode amiregfile); /* done */
-int read_directory(struct fsinfo fs, struct inode * inode_table, struct min_inode file, struct min_inode * found_files); /* done */
-void printfile(struct min_inode file, int print_filename); /* printfile */
-void * collect_file(struct min_inode file, struct fsinfo fs, struct inode * inode_table); /* done */
-struct inode * get_inode_table(struct fsinfo fs); /* done */
-void ext_fsinfo(struct fsinfo * fs); /* depricated */
 
 struct __attribute__ ((__packed__)) partitionTable {
     uint8_t bootind;
@@ -122,7 +110,21 @@ struct min_inode {
 
 struct __attribute__ ((__packed__)) dir_entry {
     uint32_t inode;
-    unsigned char name[60];
+    char name[60];
 };
+
+int printVerbose(void * printInfo, int mode);
+struct fsinfo parser(int argc, const char * argv[], int get);
+struct partitionTable partitionTable(int part, unsigned int offset);
+int fileValidity(char * file);
+struct min_inode traverseFiles(struct fsinfo * fs);
+int isdir(struct min_inode amiadir); /* done */
+int isregfile(struct min_inode amiregfile); /* done */
+int read_directory(struct fsinfo fs, struct inode * inode_table, struct min_inode file, struct min_inode * found_files); /* done */
+void printfile(struct min_inode file, int print_filename); /* printfile */
+void * collect_file(struct min_inode file, struct fsinfo fs, struct inode * inode_table); /* done */
+struct inode * get_inode_table(struct fsinfo fs); /* done */
+void ext_fsinfo(struct fsinfo * fs); /* depricated */
+void printHelpText(int get);
 
 #endif

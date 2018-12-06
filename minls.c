@@ -3,7 +3,7 @@
 int main(int argc, const char* argv[]){
     struct min_inode * files;
     int numfiles, i;
-    struct inode * inode_table;
+    struct inode* inode_table;
     
     struct fsinfo fs = parser(argc, argv, FALSE);
 

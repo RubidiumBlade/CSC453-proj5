@@ -10,9 +10,9 @@ struct partitionTable partitionValidity(FILE * diskImage, int part,
     //byte values that indicate if partition table is valid
     const unsigned int validityByte1 = 0x55;
     const unsigned int validityByte2 = 0xAA;
-    struct partitionTable * partTable;
-    void * testByte1;
-    void * testByte2;
+    struct partitionTable * partTable = malloc(sizeof(struct partitionTable));
+    void * testByte1 = malloc(sizeof(int));
+    void * testByte2 = malloc(sizeof(int));
 
     //check to see if partition table it valid, if not exit
     fseek(diskImage, validityBits, SEEK_SET);
@@ -30,11 +30,11 @@ struct partitionTable partitionValidity(FILE * diskImage, int part,
 
     //loop through partitions
     for (int i=0; i < part; i++)
-        currentPartition += sizeof(partitionTable);
+        currentPartition += sizeof(struct partitionTable);
 
     //load partition table into struct
     fseek(diskImage, currentPartition, SEEK_SET);
-    fread(partTable, sizeof(partitionTable), 1, diskImage);
+    fread(partTable, sizeof(struct partitionTable), 1, diskImage);
     return *partTable;
 }
 
@@ -44,21 +44,21 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
     //if subpart call partitionTable(subpart, partition.start)
     struct partitionTable partTable;
     unsigned int startByte = 0;
-    if (fs->part != NULL) {
+    if (fs->part != -1) {
         partTable = partitionValidity(fs->diskimage, fs->part, 0);
         //multiply by 512 because that's the size of a sector
         startByte = partTable.lFirst * 512;
 
-        if(fs.verbose)
+        if(fs->verbose)
             printVerbose(&partTable, PARTITION);
     }
 
-    if (fs->subpart != NULL) {
+    if (fs->subpart != -1) {
         partTable = partitionValidity(fs->diskimage, fs->subpart, startByte);
         //multiply by 512 because that's the size of a sector
         startByte = partTable.lFirst * 512;
 
-        if(fs.verbose)
+        if(fs->verbose)
             printVerbose(&partTable, SUBPARTITION);
     }
 
@@ -66,7 +66,7 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
     startByte += 1024;
 
     //fill superblock struct, and relevant info in fsinfo struct
-    struct superblock * sblock;
+    struct superblock * sblock = malloc(sizeof(struct superblock));
     fseek(fs->diskimage, startByte, SEEK_SET);
     fread(sblock, sizeof(struct superblock), 1, fs->diskimage);
     fs->num_inodes = sblock->ninodes;
@@ -75,12 +75,12 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
     fs->zonesize = sblock->blocksize << sblock->log_zone_size;
 
     //print verbose info if needed
-    if(fs.verbose)
+    if(fs->verbose)
             printVerbose(sblock, SUPERBLOCK);
 
-    //find inode table and first inode
-    struct inode * inodeTable = get_inode_table(*fs);
-    struct min_inode * files;
+    //find inodetable and first inode
+    struct inode* inodeTable = get_inode_table(*fs);
+    struct min_inode * files = NULL;
     struct min_inode currentInode;
     int numFiles, i;
     char * pathName;
@@ -91,19 +91,19 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
     currentInode.size = inodeTable[1].size;
 
     //follow the filepath
-    while(pathName = strtok(fs->filepath, "/")) {
-        //follow inode to driectory, follow pathname filename inode
+    while((pathName = strtok(fs->filepath, "/"))) {
+        //follow inodeto driectory, follow pathname filename inode
         //keep going until you get NULL for pathname
-        //check to make inode num is >1 and <numinodes
+        //check to make inodenum is >1 and <numinodes
         if (isdir(currentInode)) {
-            fprintf(stderr, "Current inode is not a directory!\n");
+            fprintf(stderr, "Current inodeis not a directory!\n");
             exit(EXIT_FAILURE);
         }
 
         if (*pathName) {
             numFiles = read_directory(*fs, inodeTable, currentInode, files);
 
-            //find inode with corresponding pathname
+            //find inodewith corresponding pathname
             for (i=0; i < numFiles; i++) {
                 if(!strncmp(pathName, files[i].filename, 60)) {
                     currentInode = files[i];
@@ -117,15 +117,15 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
             }
 
             if (currentInode.inum < 1 || currentInode.inum >= fs->num_inodes) {
-                fprintf(stderr, "Current inode is illegal!\n");
+                fprintf(stderr, "Current inodeis illegal!\n");
                 exit(EXIT_FAILURE);
             }
         }
     }
 
-    if (fs.verbose) {
+    if (fs->verbose) {
         int inum = currentInode.inum;
-        inode verboseInode = inodeTable[inum];
+        struct inode verboseInode = inodeTable[inum];
         printVerbose(&verboseInode, INODE);
     }
 
@@ -138,8 +138,8 @@ struct fsinfo parser(int argc, const char * argv[], int get) {
     char* opstring = "vp:s:";
     char arg;    
 
-    fs.part = NULL;
-    fs.subpart = NULL;
+    fs.part = -1;
+    fs.subpart = -1;
     fs.verbose = FALSE;
 
     while ((arg = getopt(argc, argv, opstring)) != -1){
@@ -158,7 +158,7 @@ struct fsinfo parser(int argc, const char * argv[], int get) {
             }
         }
         if (arg == 's') {
-            if (fs.part == NULL){
+            if (fs.part == -1){
                 fprintf(stderr, "Option -s requires option -p.");
                 printHelpText(get);
                 exit(EXIT_FAILURE);
@@ -171,19 +171,19 @@ struct fsinfo parser(int argc, const char * argv[], int get) {
             }
         }
     }
-    fs.imagefile = argv[optind];
-    fs.diskimage = fopen(fs.imagefile, 'r');
+    strcpy(fs.imagefile, argv[optind]);
+    fs.diskimage = fopen(fs.imagefile, "r");
     if (get){
-        fs.srcpath = argv[optind + 1];
+        strcpy(fs.srcpath, argv[optind + 1]);
         if (optind + 2 < argc) {
-            fs.dstpath = argv[optind + 2];
+            strcpy(fs.dstpath, argv[optind + 2]);
         } else {
             fs.dstpath = NULL;
         }
         fs.filepath = NULL;
     } else {
         if (optind + 1 < argc){
-            fs.filepath = argv[optind + 1];
+            strcpy(fs.filepath, argv[optind + 1]);
         } else {
             fs.filepath = "/";
         }
@@ -214,7 +214,7 @@ void printHelpText(int get){
 }
 
 int isdir(struct min_inode amiadir){
-    if (FILE_TYPE_MASK & amiadir.mode == DIRECTORY_FILE_MASK){
+    if ((FILE_TYPE_MASK & amiadir.mode) == DIRECTORY_FILE_MASK){
         return TRUE;
     } else {
         return FALSE;
@@ -222,14 +222,14 @@ int isdir(struct min_inode amiadir){
 }
 
 int isregfile(struct min_inode amiregfile){
-    if (FILE_TYPE_MASK & amiregfile.mode == REGULAR_FILE_MASK){
+    if ((FILE_TYPE_MASK & amiregfile.mode) == REGULAR_FILE_MASK){
         return TRUE;
     } else {
         return FALSE;
     }
 }
 
-int read_directory(struct fsinfo fs, struct inode * inode_table, struct min_inode file, struct min_inode * found_files){
+int read_directory(struct fsinfo fs, struct inode* inode_table, struct min_inode file, struct min_inode * found_files){
     struct dir_entry * collected_file = collect_file(file, fs, inode_table);
     int i, inode_num;
     found_files = malloc(file.size);
@@ -245,59 +245,59 @@ int read_directory(struct fsinfo fs, struct inode * inode_table, struct min_inod
 
 void printfile(struct min_inode file, int print_filename){
     if (isdir(file)){
-        printf('d');
-    } else if (iisfile(file)){
-        printf('-');
+        printf("d");
+    } else if (isregfile(file)){
+        printf("-");
     } else {
         fprintf(stderr, "File is not a directory or a regular file.\n");
     }
 
     if (OWNR_R & file.mode){
-        printf('r');
+        printf("r");
     } else {
-        printf('-');
+        printf("-");
     }
     if (OWNR_W & file.mode){
-        printf('w');
+        printf("w");
     } else {
-        printf('-');
+        printf("-");
     }
     if (OWNR_X & file.mode){
-        printf('x');
+        printf("x");
     } else {
-        printf('-');
+        printf("-");
     }
 
     if (GRP_R & file.mode){
-        printf('r');
+        printf("r");
     } else {
-        printf('-');
+        printf("-");
     }
     if (GRP_W & file.mode){
-        printf('w');
+        printf("w");
     } else {
-        printf('-');
+        printf("-");
     }
     if (GRP_X & file.mode){
-        printf('x');
+        printf("x");
     } else {
-        printf('-');
+        printf("-");
     }
 
     if (USR_R & file.mode){
-        printf('r');
+        printf("r");
     } else {
-        printf('-');
+        printf("-");
     }
     if (USR_W & file.mode){
-        printf('w');
+        printf("w");
     } else {
-        printf('-');
+        printf("-");
     }
     if (USR_X & file.mode){
-        printf('x');
+        printf("x");
     } else {
-        printf('-');
+        printf("-");
     }
 
     printf(" %9d", file.size);
@@ -317,10 +317,10 @@ void ext_fsinfo(struct fsinfo * fs){
     fs->zonesize = sblk->blocksize << sblk->log_zone_size;
 }
 
-void * collect_file(struct min_inode file, struct fsinfo fs, struct inode * inode_table){
+void * collect_file(struct min_inode file, struct fsinfo fs, struct inode* inode_table){
     void * foundfile = malloc(file.size), * dummy = malloc(fs.zonesize), * pos = foundfile;
     int bytesleft, zonenum = 0, num_ino_idi = fs.zonesize / sizeof(uint32_t), hole;
-    struct inode * inode_actual = &inode_table[file.inum];
+    struct inode* inode_actual = &inode_table[file.inum];
     uint32_t * indirect_table = malloc(fs.zonesize);
     if (inode_table == NULL){
         inode_table = get_inode_table(fs);
@@ -380,8 +380,8 @@ void * collect_file(struct min_inode file, struct fsinfo fs, struct inode * inod
     return foundfile;    
 }
 
-struct inode * get_inode_table(struct fsinfo fs){
-    struct inode * inode_table = malloc(sizeof(struct inode) * fs.num_inodes);
+struct inode* get_inode_table(struct fsinfo fs){
+    struct inode* inode_table = malloc(sizeof(struct inode) * fs.num_inodes);
     fseek(fs.diskimage, (fs.inode_table_start_block * fs.blocksize) + fs.offset, SEEK_SET);
     fread(inode_table, fs.num_inodes * 64, 1, fs.diskimage);
     return inode_table;
