@@ -88,16 +88,18 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
 
     strcpy(currentInode.filename, "/");
     currentInode.inum = 1;
-    currentInode.mode = inodeTable[1].mode;
-    currentInode.size = inodeTable[1].size;
+    currentInode.mode = inodeTable[0].mode;
+    currentInode.size = inodeTable[0].size;
 
+    printf("%s\n", fs->filepath);
     //follow the filepath
     while((pathName = strtok(fs->filepath, "/"))) {
         //follow inodeto driectory, follow pathname filename inode
         //keep going until you get NULL for pathname
         //check to make inodenum is >1 and <numinodes
+        printf("ab%s\n", pathName);
         if (isdir(currentInode)) {
-            fprintf(stderr, "Current inodeis not a directory!\n");
+            fprintf(stderr, "Current inode is not a directory!\n");
             exit(EXIT_FAILURE);
         }
 
@@ -118,7 +120,7 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
             }
 
             if (currentInode.inum < 1 || currentInode.inum >= fs->num_inodes) {
-                fprintf(stderr, "Current inodeis illegal!\n");
+                fprintf(stderr, "Current inode is illegal!\n");
                 exit(EXIT_FAILURE);
             }
         }
@@ -126,7 +128,7 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
 
     if (fs->verbose) {
         int inum = currentInode.inum;
-        struct inode verboseInode = inodeTable[inum];
+        struct inode verboseInode = inodeTable[inum-1];
         printVerbose(&verboseInode, INODE);
     }
 
@@ -331,7 +333,7 @@ void ext_fsinfo(struct fsinfo * fs){
 void * collect_file(struct min_inode file, struct fsinfo fs, struct inode* inode_table){
     void * foundfile = malloc(file.size), * dummy = malloc(fs.zonesize), * pos = foundfile;
     int bytesleft, zonenum = 0, num_ino_idi = fs.zonesize / sizeof(uint32_t), hole;
-    struct inode* inode_actual = &inode_table[file.inum];
+    struct inode* inode_actual = &inode_table[file.inum-1];
     uint32_t * indirect_table = malloc(fs.zonesize);
     if (inode_table == NULL){
         inode_table = get_inode_table(fs);
@@ -339,29 +341,29 @@ void * collect_file(struct min_inode file, struct fsinfo fs, struct inode* inode
     
     for (bytesleft = file.size; bytesleft > 0; bytesleft -= fs.zonesize){
         hole = FALSE;
-        if (zonenum < 7){ /* if in direct zones */
+        if (zonenum < 8){ /* if in direct zones */
             /* just seek to the correct zone */
             if (inode_actual->zone[zonenum]){
                 fseek(fs.diskimage, (inode_actual->zone[zonenum] * fs.zonesize) + fs.offset, SEEK_SET);
             } else {
                 hole = TRUE;
             }
-        } else if (zonenum < (num_ino_idi + 7)){ /* in indirect zones */
+        } else if (zonenum < (num_ino_idi + 8)){ /* in indirect zones */
             /* get the indierct zone */
             fseek(fs.diskimage, (inode_actual->indirect * fs.zonesize) + fs.offset, SEEK_SET);
             fread(indirect_table, fs.zonesize, 1, fs.diskimage);
-            if (indirect_table[zonenum - 7]) {
-                fseek(fs.diskimage, (indirect_table[zonenum - 7] * fs.zonesize) + fs.offset, SEEK_SET);
+            if (indirect_table[zonenum - 8]) {
+                fseek(fs.diskimage, (indirect_table[zonenum - 8] * fs.zonesize) + fs.offset, SEEK_SET);
             } else {
                 hole = TRUE;
             }
-        } else if ((zonenum < pow(num_ino_idi, 2) + 7)){ /* in double indierct zones */
+        } else if ((zonenum < pow(num_ino_idi, 2) + 8)){ /* in double indierct zones */
             fseek(fs.diskimage, (inode_actual->two_indirect * fs.zonesize) + fs.offset, SEEK_SET);
             fread(indirect_table, fs.zonesize, 1, fs.diskimage);
-            fseek(fs.diskimage, (indirect_table[(zonenum - 7 - num_ino_idi) / num_ino_idi] * fs.zonesize) + fs.offset, SEEK_SET);
+            fseek(fs.diskimage, (indirect_table[(zonenum - 8 - num_ino_idi) / num_ino_idi] * fs.zonesize) + fs.offset, SEEK_SET);
             fread(indirect_table, fs.zonesize, 1, fs.diskimage);
-            if (indirect_table[(zonenum - 7 - num_ino_idi) % num_ino_idi]) {
-                fseek(fs.diskimage, (indirect_table[(zonenum - 7 - num_ino_idi) % num_ino_idi] * fs.zonesize) + fs.offset, SEEK_SET);
+            if (indirect_table[(zonenum - 8 - num_ino_idi) % num_ino_idi]) {
+                fseek(fs.diskimage, (indirect_table[(zonenum - 8 - num_ino_idi) % num_ino_idi] * fs.zonesize) + fs.offset, SEEK_SET);
             } else {
                 hole = TRUE;
             }
@@ -394,6 +396,7 @@ void * collect_file(struct min_inode file, struct fsinfo fs, struct inode* inode
 struct inode* get_inode_table(struct fsinfo fs){
     struct inode* inode_table = malloc(sizeof(struct inode) * fs.num_inodes);
     fseek(fs.diskimage, (fs.inode_table_start_block * fs.blocksize) + fs.offset, SEEK_SET);
-    fread(inode_table, fs.num_inodes * 64, 1, fs.diskimage);
+    //replaced 64 with sizeof(struct inode)
+    fread(inode_table, fs.num_inodes * sizeof(struct inode), 1, fs.diskimage);
     return inode_table;
 }
