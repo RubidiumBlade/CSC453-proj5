@@ -107,12 +107,14 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
 
     printf("%s\n", fs->filepath);
     //follow the filepath
-    while((pathName = strtok(fs->filepath, "/"))) {
+    pathName = strtok(fs->filepath, "/");
+    if (pathName != NULL){
+    do {
         //follow inodeto driectory, follow pathname filename inode
         //keep going until you get NULL for pathname
         //check to make inodenum is >1 and <numinodes
-        printf("ab%s\n", pathName);
-        if (isdir(currentInode)) {
+        printf("debug::%s\n", pathName);
+        if (!isdir(currentInode)) {
             fprintf(stderr, "Current inode is not a directory!\n");
             exit(EXIT_FAILURE);
         }
@@ -139,6 +141,7 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
                 exit(EXIT_FAILURE);
             }
         }
+    } while ((pathName = strtok(NULL, "/")));
     }
 
     if (fs->verbose) {
@@ -235,7 +238,7 @@ void printHelpText(int get){
             "-h help --- print usage information and exit\n"
             "-v verbose --- increase verbosity level\n");
     } else {
-        printf("usage: minls [ -v ] [ -p num [ -s num ] ] imagefile [ path ]\n"
+        printf("usage: minls [ -v ] [ -p num [ -s num ] ] imagefile srcpath [ dstpath ]\n"
             "Options:\n"
             "-p part --- select partition for filesystem (default: none)\n"
             "-s sub --- select subpartition for filesystem (default: none)\n"

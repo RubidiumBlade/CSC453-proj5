@@ -24,6 +24,7 @@ int main(int argc, char* const *argv){
         exit(EXIT_SUCCESS);
     } else if (isregfile(file_me)){
         printfile(file_me, FALSE);
+        printf(" ");
         printf(fs.filepath);
         printf("\n");
         exit(EXIT_SUCCESS);
