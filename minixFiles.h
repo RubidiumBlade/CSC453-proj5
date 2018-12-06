@@ -32,7 +32,7 @@
 struct fsinfo parser(int argc, const char * argv[], int get);
 struct partitionTable partitionTable(int part, unsigned int offset);
 int fileValidity(char * file);
-struct min_inode * traverseFiles(struct fsinfo fs);
+struct min_inode traverseFiles(struct fsinfo * fs);
 int isdir(struct min_inode amiadir); /* done */
 int isregfile(struct min_inode amiregfile); /* done */
 int read_directory(struct fsinfo fs, struct inode * inode_table, struct min_inode file, struct min_inode * found_files); /* done */

@@ -3,7 +3,7 @@
 //replace args with struct
 int minget(struct fsinfo fs) {
 	FILE * destFile;
-	struct min_inode * srcInode;
+	struct min_inode srcInode;
 
 	//set destination to one provided, or stdout
 	if (!fs.dstpath)
@@ -13,15 +13,15 @@ int minget(struct fsinfo fs) {
 		destFile = fopen(fs.dstpath, "w");
 	
 	//traverse filepath
-	srcInode = traverseFiles(fs);
+	srcInode = traverseFiles(&fs);
 
     /*check if filepath leads to a file,
 	 if it leads to a directory abort*/
-	if (isDir(*srcInode)) {
+	if (isDir(srcInode)) {
 		/*read to fileContents from source,
 		 *write to destination from fileContents*/
-		void * fileContents = collect_file(*srcInode, fs, NULL);
-		fwrite(fileContents, srcInode->size, 1, destFile);
+		void * fileContents = collect_file(srcInode, fs, NULL);
+		fwrite(fileContents, srcInode.size, 1, destFile);
 
 		//free stuff; close stuff
 		fclose(destFile);

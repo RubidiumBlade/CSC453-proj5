@@ -2,27 +2,27 @@
 
 /* when using partitioning, make sure partition table is valid 
  * return table if valid*/
-struct partitionTable partitionValidity(File * diskImage, int part,
+struct partitionTable partitionValidity(FILE * diskImage, int part,
                                          unsigned int offset) {
     unsigned int firstPartition = 0x1BE + offset;
     unsigned int validityBits = firstPartition + sizeof(partitionTable);
-    unsigned int currentPartition = firstParttition;
+    unsigned int currentPartition = firstPartition;
     //byte values that indicate if partition table is valid
     const unsigned int validityByte1 = 0x55;
     const unsigned int validityByte2 = 0xAA;
-    void * partTable;
+    struct partitionTable * partTable;
     void * testByte1;
     void * testByte2;
 
     //check to see if partition table it valid, if not exit
-    fseek(diskimage, validityBits, SET_SEEK);
-    fread(testByte1, sizeof(int), 1, diskimage);
+    fseek(diskImage, validityBits, SEEK_SET);
+    fread(testByte1, sizeof(int), 1, diskImage);
     if ((int)testByte1 != validityByte1) {
         fprintf(stderr, "Partition Table is invalid!\n");
         exit(EXIT_FAILURE);
     }
 
-    fread(testByte2, sizeof(int), 1, diskimage);
+    fread(testByte2, sizeof(int), 1, diskImage);
     if((int)testByte2 != validityByte2) {
         fprintf(stderr, "Partition Table is invalid!\n");
         exit(EXIT_FAILURE);
@@ -33,30 +33,25 @@ struct partitionTable partitionValidity(File * diskImage, int part,
         currentPartition += sizeof(partitionTable);
 
     //load partition table into struct
-    fseek(diskimage, currentPartition, SET_SEEK);
-    fread(partTable, sizeof(partitionTable), 1, diskimage);
-    return (partitionTable) partTable;
-}
-
-/* check to see if the found file is actually a file */
-int fileValidity(char* file) {
-	return 0;
+    fseek(diskImage, currentPartition, SEEK_SET);
+    fread(partTable, sizeof(partitionTable), 1, diskImage);
+    return *partTable;
 }
 
 /* traverse the filesystem until you find the requested file/directory */
-struct min_inode traverseFiles(struct fsinfo fs) {
+struct min_inode traverseFiles(struct fsinfo * fs) {
     //if part call partitionTable(part, 0)
     //if subpart call partitionTable(subpart, partition.start)
-    partitionTable partTable;
+    struct partitionTable partTable;
     unsigned int startByte = 0;
-    if (fs.part != NULL) {
-        partTable = partitionValidity(fs.diskimage, fs.part, 0);
+    if (fs->part != NULL) {
+        partTable = partitionValidity(fs->diskimage, fs->part, 0);
         //multiply by 512 because that's the size of a sector
         startByte = partTable.lFirst * 512;
     }
 
-    if (fs.subpart != NULL) {
-        partTable = partitionValidity(fs.diskimage, fs.subpart, startByte);
+    if (fs->subpart != NULL) {
+        partTable = partitionValidity(fs->diskimage, fs->subpart, startByte);
         //multiply by 512 because that's the size of a sector
         startByte = partTable.lFirst * 512;
     }
@@ -65,23 +60,28 @@ struct min_inode traverseFiles(struct fsinfo fs) {
     startByte += 1024;
 
     //fill superblock struct, and relevant info in fsinfo struct
-    superblock * sblock;
-    fseek(fs.diskimage, startByte, SET_SEEK);
-    fread(superblock, sizeof(superblock), 1, fs.diskimage);
-    fs.num_inodes = sblock->ninodes;
-    fs.inode_table_start_block = sblock->i_blocks + sblock->z_blocks + 2;
-    fs.blocksize = sblock->blocksize;
-    fs.zone = sblock->blocksize << sblock->log_zone_size;
+    struct superblock * sblock;
+    fseek(fs->diskimage, startByte, SEEK_SET);
+    fread(sblock, sizeof(struct superblock), 1, fs->diskimage);
+    fs->num_inodes = sblock->ninodes;
+    fs->inode_table_start_block = sblock->i_blocks + sblock->z_blocks + 2;
+    fs->blocksize = sblock->blocksize;
+    fs->zonesize = sblock->blocksize << sblock->log_zone_size;
 
     //find inode table and first inode
-    inode * inodeTable = get_inode_table(fs);
-    inode * files;
-    inode currentInode = inodeTable[1];
-    int numFiles;
+    struct inode * inodeTable = get_inode_table(*fs);
+    struct min_inode * files;
+    struct min_inode currentInode;
+    int numFiles, i;
     char * pathName;
 
+    strcpy(currentInode.filename, "/");
+    currentInode.inum = 1;
+    currentInode.mode = inodeTable[1].mode;
+    currentInode.size = inodeTable[1].size;
+
     //follow the filepath
-    while(pathName = strtok(fs.filepath, "/")) {
+    while(pathName = strtok(fs->filepath, "/")) {
         //follow inode to driectory, follow pathname filename inode
         //keep going until you get NULL for pathname
         //check to make inode num is >1 and <numinodes
@@ -91,11 +91,11 @@ struct min_inode traverseFiles(struct fsinfo fs) {
         }
 
         if (*pathName) {
-            numFiles = read_directory(fs, inodeTable, currentInode, files);
+            numFiles = read_directory(*fs, inodeTable, currentInode, files);
 
             //find inode with corresponding pathname
-            for (int i=0; i < numFiles; i++) {
-                if(!strcmp(pathname, files[i].filename, 60)) {
+            for (i=0; i < numFiles; i++) {
+                if(!strncmp(pathName, files[i].filename, 60)) {
                     currentInode = files[i];
                     break;
                 }
@@ -106,7 +106,7 @@ struct min_inode traverseFiles(struct fsinfo fs) {
                 exit(EXIT_FAILURE);
             }
 
-            if (currentInode.inum < 1 || currentInode.inum >= numinodes) {
+            if (currentInode.inum < 1 || currentInode.inum >= fs->num_inodes) {
                 fprintf(stderr, "Current inode is illegal!\n");
                 exit(EXIT_FAILURE);
             }
