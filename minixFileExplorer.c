@@ -13,23 +13,24 @@ struct partitionTable partitionValidity(FILE * diskImage, int part,
     struct partitionTable * partTable = malloc(sizeof(struct partitionTable));
     void * testByte1 = malloc(sizeof(int));
     void * testByte2 = malloc(sizeof(int));
+    int i;
 
     //check to see if partition table it valid, if not exit
     fseek(diskImage, validityBits, SEEK_SET);
     fread(testByte1, sizeof(int), 1, diskImage);
-    if ((int)testByte1 != validityByte1) {
+    if (*(int *)testByte1 != validityByte1) {
         fprintf(stderr, "Partition Table is invalid!\n");
         exit(EXIT_FAILURE);
     }
 
     fread(testByte2, sizeof(int), 1, diskImage);
-    if((int)testByte2 != validityByte2) {
+    if(*(int *)testByte2 != validityByte2) {
         fprintf(stderr, "Partition Table is invalid!\n");
         exit(EXIT_FAILURE);
     }
 
     //loop through partitions
-    for (int i=0; i < part; i++)
+    for (i=0; i < part; i++)
         currentPartition += sizeof(struct partitionTable);
 
     //load partition table into struct
@@ -133,7 +134,7 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
 }
 
 /* Takes in the arguments and parses them */
-struct fsinfo parser(int argc, const char * argv[], int get) {
+struct fsinfo parser(int argc, char * const * argv, int get) {
     struct fsinfo fs;
     char* opstring = "vp:s:";
     char arg;    
@@ -141,6 +142,11 @@ struct fsinfo parser(int argc, const char * argv[], int get) {
     fs.part = -1;
     fs.subpart = -1;
     fs.verbose = FALSE;
+
+    if ((argc < 2) || (argc < 3 && get)){
+       printHelpText(get);
+       exit(EXIT_FAILURE);
+    }
 
     while ((arg = getopt(argc, argv, opstring)) != -1){
         if (arg == '?') {
@@ -171,6 +177,7 @@ struct fsinfo parser(int argc, const char * argv[], int get) {
             }
         }
     }
+    fs.imagefile = malloc(strlen(argv[optind]) + 1);
     strcpy(fs.imagefile, argv[optind]);
     fs.diskimage = fopen(fs.imagefile, "r");
     if (get){

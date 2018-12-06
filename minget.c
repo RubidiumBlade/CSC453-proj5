@@ -17,7 +17,7 @@ int minget(struct fsinfo fs) {
 
     /*check if filepath leads to a file,
 	 if it leads to a directory abort*/
-	if (isDir(srcInode)) {
+	if (isdir(srcInode)) {
 		/*read to fileContents from source,
 		 *write to destination from fileContents*/
 		void * fileContents = collect_file(srcInode, fs, NULL);
@@ -36,7 +36,7 @@ int minget(struct fsinfo fs) {
 	}
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char* const *  argv) {
 	struct fsinfo fs = parser(argc, argv, TRUE); 
 	return minget(fs);
 }

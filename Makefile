@@ -13,10 +13,10 @@ minget.o: minget.c
 	gcc $(CFLAGS) -o minget.o -c minget.c
 
 minget: minget.o minixFileExplorer.o minixFiles.h printVerbose.o
-	gcc $(CFLAGS) -o minget minget.o minixFileExplorer.o minixFiles.h
+	gcc $(CFLAGS) -o minget -lm minget.o minixFileExplorer.o minixFiles.h printVerbose.o
 
 minls: minls.o minixFileExplorer.o minixFiles.h printVerbose.o
-	gcc $(CFLAGS) -o minls minls.o minixFileExplorer.o minixFiles.h
+	gcc $(CFLAGS) -o minls -lm minls.o minixFileExplorer.o minixFiles.h printVerbose.o
 
 printVerbose.o: printVerbose.c
 	gcc $(CFLAGS) -o printVerbose.o -c printVerbose.c

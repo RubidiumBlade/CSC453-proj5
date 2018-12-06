@@ -1,7 +1,7 @@
 #include "minixFiles.h"
 
-int main(int argc, const char* argv[]){
-    struct min_inode * files;
+int main(int argc, char* const *argv){
+    struct min_inode * files = NULL;
     int numfiles, i;
     struct inode* inode_table;
     
@@ -25,7 +25,7 @@ int main(int argc, const char* argv[]){
         printf("\n");
         exit(EXIT_SUCCESS);
     } else {
-        fprintf(stderr, "The specified file is not a a regular file or a directory.\n");
+        fprintf(stderr, "The specified file is not a regular file or a directory.\n");
         exit(EXIT_FAILURE);
     }
 

@@ -4,6 +4,8 @@ int printVerbose(void * printInfo_v, int mode) {
 	struct superblock * printInfo_su;
 	struct partitionTable * printInfo_p;
 	struct inode* printInfo_i;
+        time_t time;
+        int i;
 	switch (mode) {
 		case SUPERBLOCK :
 			printInfo_su = (struct superblock *) printInfo_v;
@@ -56,10 +58,13 @@ int printVerbose(void * printInfo_v, int mode) {
 			fprintf(stderr, "   uid: %d\n", printInfo_i->uid);
 			fprintf(stderr, "   gid: %d\n", printInfo_i->gid);
 			fprintf(stderr, "   size: %d\n", printInfo_i->size);
-			fprintf(stderr, "   atime: %s\n", ctime(printInfo_i->atime));
-			fprintf(stderr, "   mtime: %s\n", ctime(printInfo_i->mtime));
-			fprintf(stderr, "   ctime: %s\n", ctime(printInfo_i->ctime));
-			for (int i=0; i<DIRECT_ZONES; i++)
+                        time = printInfo_i->atime;
+			fprintf(stderr, "   atime: %s\n", ctime(&time));
+                        time = printInfo_i->mtime;
+			fprintf(stderr, "   mtime: %s\n", ctime(&time));
+                        time = printInfo_i->ctime;
+			fprintf(stderr, "   ctime: %s\n", ctime(&time));
+			for (i=0; i<DIRECT_ZONES; i++)
 				fprintf(stderr, "   zone[%d]: %d\n", i, printInfo_i->zone[i]);
 
 			fprintf(stderr, "   indirect: %d\n", printInfo_i->indirect);

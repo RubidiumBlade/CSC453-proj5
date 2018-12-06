@@ -114,7 +114,7 @@ struct __attribute__ ((__packed__)) dir_entry {
 };
 
 int printVerbose(void * printInfo, int mode);
-struct fsinfo parser(int argc, const char * argv[], int get);
+struct fsinfo parser(int argc, char * const * argv, int get);
 struct partitionTable partitionTable(int part, unsigned int offset);
 int fileValidity(char * file);
 struct min_inode traverseFiles(struct fsinfo * fs);
