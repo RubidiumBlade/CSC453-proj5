@@ -188,8 +188,10 @@ struct fsinfo parser(int argc, char * const * argv, int get) {
        exit(EXIT_FAILURE);
     }
     if (get){
+        fs.srcpath = malloc(strlen(argv[optind + 1]));
         strcpy(fs.srcpath, argv[optind + 1]);
         if (optind + 2 < argc) {
+            fs.dstpath = malloc(strlen(argv[optind + 2]));
             strcpy(fs.dstpath, argv[optind + 2]);
         } else {
             fs.dstpath = NULL;
@@ -197,6 +199,7 @@ struct fsinfo parser(int argc, char * const * argv, int get) {
         fs.filepath = NULL;
     } else {
         if (optind + 1 < argc){
+            fs.filepath = malloc(strlen(argv[optind + 1]));
             strcpy(fs.filepath, argv[optind + 1]);
         } else {
             fs.filepath = "/";
@@ -245,17 +248,19 @@ int isregfile(struct min_inode amiregfile){
 
 int read_directory(struct fsinfo fs, struct inode* inode_table, struct min_inode file, struct min_inode * found_files){
     struct dir_entry * collected_file = collect_file(file, fs, inode_table);
-    int i, inode_num;
-    for (i = 0; i < (file.size / sizeof(struct dir_entry)) - 1; i++){
+    int i, inode_num, num_deleted = 0;
+    for (i = 0; i < (file.size / sizeof(struct dir_entry)); i++){
         inode_num = collected_file[i].inode;
         if (inode_num){
            strncpy(found_files[i].filename, collected_file[i].name, 60);
-           found_files[i].mode = inode_table[inode_num].mode;
-           found_files[i].size = inode_table[inode_num].size;
+           found_files[i].mode = inode_table[inode_num - 1].mode;
+           found_files[i].size = inode_table[inode_num - 1].size;
            found_files[i].inum = inode_num;
+        } else {
+           num_deleted++;
         }
     }
-    return (file.size / sizeof(struct dir_entry) - 1);
+    return (file.size / sizeof(struct dir_entry));
 }
 
 void printfile(struct min_inode file, int print_filename){
@@ -265,6 +270,7 @@ void printfile(struct min_inode file, int print_filename){
         printf("-");
     } else {
         fprintf(stderr, "File is not a directory or a regular file.\n");
+        printf("?");
     }
 
     if (OWNR_R & file.mode){
@@ -343,14 +349,14 @@ void * collect_file(struct min_inode file, struct fsinfo fs, struct inode* inode
     
     for (bytesleft = file.size; bytesleft > 0; bytesleft -= fs.zonesize){
         hole = FALSE;
-        if (zonenum < 8){ /* if in direct zones */
+        if (zonenum < 7){ /* if in direct zones */
             /* just seek to the correct zone */
             if (inode_actual->zone[zonenum]){
                 fseek(fs.diskimage, (inode_actual->zone[zonenum] * fs.zonesize) + fs.offset, SEEK_SET);
             } else {
                 hole = TRUE;
             }
-        } else if (zonenum < (num_ino_idi + 8)){ /* in indirect zones */
+        } else if (zonenum < (num_ino_idi + 7)){ /* in indirect zones */
             /* get the indierct zone */
             fseek(fs.diskimage, (inode_actual->indirect * fs.zonesize) + fs.offset, SEEK_SET);
             fread(indirect_table, fs.zonesize, 1, fs.diskimage);
@@ -359,7 +365,7 @@ void * collect_file(struct min_inode file, struct fsinfo fs, struct inode* inode
             } else {
                 hole = TRUE;
             }
-        } else if ((zonenum < pow(num_ino_idi, 2) + 8)){ /* in double indierct zones */
+        } else if ((zonenum < pow(num_ino_idi, 2) + 7)){ /* in double indierct zones */
             fseek(fs.diskimage, (inode_actual->two_indirect * fs.zonesize) + fs.offset, SEEK_SET);
             fread(indirect_table, fs.zonesize, 1, fs.diskimage);
             fseek(fs.diskimage, (indirect_table[(zonenum - 8 - num_ino_idi) / num_ino_idi] * fs.zonesize) + fs.offset, SEEK_SET);
