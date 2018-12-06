@@ -137,17 +137,20 @@ struct fsinfo parser(int argc, const char * argv[], int get) {
             fs.part = strtol(optarg, NULL, 10);
             if (fs.part == 0){
                 fprintf(stderr, "Option -p requires an integer argument.");
+                printHelpText(get);
                 exit(EXIT_FAILURE);
             }
         }
         if (arg == 's') {
             if (fs.part == NULL){
                 fprintf(stderr, "Option -s requires option -p.");
+                printHelpText(get);
                 exit(EXIT_FAILURE);
             }
             fs.subpart = strtol(optarg, NULL, 10);
             if (fs.part == 0){
                 fprintf(stderr, "Option -s requires an integer argument.");
+                printHelpText(get);
                 exit(EXIT_FAILURE);
             }
         }
@@ -174,6 +177,24 @@ struct fsinfo parser(int argc, const char * argv[], int get) {
 
     ext_fsinfo(&fs);
     return fs;
+}
+
+void printHelpText(int get){
+    if (get){
+        printf("usage: minget [ -v ] [ -p num [ -s num ] ] imagefile [ path ]\n"
+            "Options:\n"
+            "-p part --- select partition for filesystem (default: none)\n"
+            "-s sub --- select subpartition for filesystem (default: none)\n"
+            "-h help --- print usage information and exit\n"
+            "-v verbose --- increase verbosity level\n");
+    } else {
+        printf("usage: minls [ -v ] [ -p num [ -s num ] ] imagefile [ path ]\n"
+            "Options:\n"
+            "-p part --- select partition for filesystem (default: none)\n"
+            "-s sub --- select subpartition for filesystem (default: none)\n"
+            "-h help --- print usage information and exit\n"
+            "-v verbose --- increase verbosity level\n");
+    }
 }
 
 int isdir(struct min_inode amiadir){
