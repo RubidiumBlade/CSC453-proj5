@@ -17,7 +17,9 @@ int main(int argc, char* const *argv){
         printf(fs.filepath);
         printf(":\n");
         for (i = 0; i < numfiles; i++){
+           if (files[i].inum){
             printfile(files[i], TRUE);
+           }
         }
         exit(EXIT_SUCCESS);
     } else if (isregfile(file_me)){
