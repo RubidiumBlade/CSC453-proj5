@@ -36,6 +36,13 @@ struct partitionTable partitionValidity(FILE * diskImage, int part,
     //load partition table into struct
     fseek(diskImage, currentPartition, SEEK_SET);
     fread(partTable, sizeof(struct partitionTable), 1, diskImage);
+
+    //validate partition table
+    if(partTable->type != 0x81) {
+        fprintf(stderr, "This doesn't look like a Minix filesystem.\n");
+        exit(EXIT_FAILURE);
+    }
+
     return *partTable;
 }
 
@@ -74,6 +81,13 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
     fs->inode_table_start_block = sblock->i_blocks + sblock->z_blocks + 2;
     fs->blocksize = sblock->blocksize;
     fs->zonesize = sblock->blocksize << sblock->log_zone_size;
+
+    //valididate superblock
+    if (sblock->magic != 0x4D5A && sblock->magic != 0x5A4D) {
+        fprintf(stderr, "Bad magic number.\n");
+        fprintf(stderr, "This doesn't look like a Minix filesystem.\n");
+        exit(EXIT_FAILURE);
+    }
 
     //print verbose info if needed
     if(fs->verbose)
