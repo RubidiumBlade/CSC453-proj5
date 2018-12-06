@@ -1,9 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -g
 
-all:
-	make minget
-	make minls
+all: minget minls
 
 minixFileExplorer.o: minixFileExplorer.c
 	gcc $(CFLAGS) -o minixFileExplorer.o -c minixFileExplorer.c
