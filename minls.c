@@ -10,6 +10,7 @@ int main(int argc, char* const *argv){
     inode_table = get_inode_table(fs);
 
     struct min_inode file_me = traverseFiles(&fs);
+    files = malloc(file_me.size);
 
     if (isdir(file_me)){
         numfiles = read_directory(fs, inode_table, file_me, files);

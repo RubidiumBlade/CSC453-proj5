@@ -104,6 +104,7 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
         }
 
         if (*pathName) {
+           files = malloc(currentInode.size);
             numFiles = read_directory(*fs, inodeTable, currentInode, files);
 
             //find inodewith corresponding pathname
@@ -245,15 +246,16 @@ int isregfile(struct min_inode amiregfile){
 int read_directory(struct fsinfo fs, struct inode* inode_table, struct min_inode file, struct min_inode * found_files){
     struct dir_entry * collected_file = collect_file(file, fs, inode_table);
     int i, inode_num;
-    found_files = malloc(file.size);
-    for (i = 0; i < file.size / sizeof(struct dir_entry); i++){
-        strncpy(found_files[i].filename, collected_file[i].name, 60);
+    for (i = 0; i < (file.size / sizeof(struct dir_entry)) - 1; i++){
         inode_num = collected_file[i].inode;
-        found_files[i].mode = inode_table[inode_num].mode;
-        found_files[i].size = inode_table[inode_num].size;
-        found_files[i].inum = inode_num;
+        if (inode_num){
+           strncpy(found_files[i].filename, collected_file[i].name, 60);
+           found_files[i].mode = inode_table[inode_num].mode;
+           found_files[i].size = inode_table[inode_num].size;
+           found_files[i].inum = inode_num;
+        }
     }
-    return file.size / sizeof(struct dir_entry);
+    return (file.size / sizeof(struct dir_entry) - 1);
 }
 
 void printfile(struct min_inode file, int print_filename){
