@@ -45,7 +45,7 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
     //if subpart call partitionTable(subpart, partition.start)
     struct partitionTable partTable;
     unsigned int startByte = 0;
-    if (fs->part != -1) {
+    if (fs->part > 0) {
         partTable = partitionValidity(fs->diskimage, fs->part, 0);
         //multiply by 512 because that's the size of a sector
         startByte = partTable.lFirst * 512;
@@ -54,7 +54,7 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
             printVerbose(&partTable, PARTITION);
     }
 
-    if (fs->subpart != -1) {
+    if (fs->subpart > 0) {
         partTable = partitionValidity(fs->diskimage, fs->subpart, startByte);
         //multiply by 512 because that's the size of a sector
         startByte = partTable.lFirst * 512;
@@ -180,6 +180,10 @@ struct fsinfo parser(int argc, char * const * argv, int get) {
     fs.imagefile = malloc(strlen(argv[optind]) + 1);
     strcpy(fs.imagefile, argv[optind]);
     fs.diskimage = fopen(fs.imagefile, "r");
+    if (fs.diskimage == NULL){
+       perror("fopen");
+       exit(EXIT_FAILURE);
+    }
     if (get){
         strcpy(fs.srcpath, argv[optind + 1]);
         if (optind + 2 < argc) {

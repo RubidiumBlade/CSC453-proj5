@@ -23,6 +23,7 @@ int printVerbose(void * printInfo_v, int mode) {
 			fprintf(stderr, "   pad3: %d\n", printInfo_su->pad3);
 			fprintf(stderr, "   blocksize: %d\n", printInfo_su->blocksize);
 			fprintf(stderr, "   subversion: %d\n\n", printInfo_su->subversion);
+                        break;
 
 		case PARTITION :
 			printInfo_p = (struct partitionTable *) printInfo_v;
@@ -36,6 +37,7 @@ int printVerbose(void * printInfo_v, int mode) {
 			fprintf(stderr, "   end_cyl: %d\n", printInfo_p->end_cyl);
 			fprintf(stderr, "   lFirst: %d\n", printInfo_p->lFirst);
 			fprintf(stderr, "   size: %d\n\n", printInfo_p->size);
+                        break;
 
 
 		case SUBPARTITION :
@@ -50,10 +52,11 @@ int printVerbose(void * printInfo_v, int mode) {
 			fprintf(stderr, "   end_cyl: %d\n", printInfo_p->end_cyl);
 			fprintf(stderr, "   lFirst: %d\n", printInfo_p->lFirst);
 			fprintf(stderr, "   size: %d\n\n", printInfo_p->size);
+                        break;
 
 		case INODE :
 			printInfo_i = (struct inode*) printInfo_v;
-			fprintf(stderr, "Subpartition contents:\nStoredFields:\n");
+			fprintf(stderr, "inode contents:\nStoredFields:\n");
 			fprintf(stderr, "   links: %d\n", printInfo_i->links);
 			fprintf(stderr, "   uid: %d\n", printInfo_i->uid);
 			fprintf(stderr, "   gid: %d\n", printInfo_i->gid);
@@ -70,11 +73,13 @@ int printVerbose(void * printInfo_v, int mode) {
 			fprintf(stderr, "   indirect: %d\n", printInfo_i->indirect);
 			fprintf(stderr, "   two_indirect: %d\n", printInfo_i->two_indirect);
 			fprintf(stderr, "   unused: %d\n", printInfo_i->unused);
+                        break;
 
 
 		default :
 			fprintf(stderr, "Error: invalid mode given to print verbose...\n");
 			exit(EXIT_FAILURE);
+                        break;
 	}
 
 	return 0;
