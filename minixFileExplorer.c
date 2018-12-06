@@ -86,6 +86,9 @@ struct fsinfo parser(int argc, const char * argv[], int get) {
         fs.srcpath = NULL;
         fs.dstpath = NULL;
     }
+
+    ext_fsinfo(&fs);
+    return fs;
 }
 
 int isdir(struct min_inode amiadir){
@@ -116,4 +119,95 @@ int read_directory(struct fsinfo fs, struct inode * inode_table, struct min_inod
         found_files[i].inum = inode_num;
     }
     return file.size / sizeof(struct dir_entry);
+}
+
+void printfile(struct min_inode file, int print_filename){
+    if (isdir(file)){
+        printf('d');
+    } else if (iisfile(file)){
+        printf('-');
+    } else {
+        fprintf(stderr, "File is not a directory or a regular file.\n");
+    }
+
+    if (OWNR_R & file.mode){
+        printf('r');
+    } else {
+        printf('-');
+    }
+    if (OWNR_W & file.mode){
+        printf('w');
+    } else {
+        printf('-');
+    }
+    if (OWNR_X & file.mode){
+        printf('x');
+    } else {
+        printf('-');
+    }
+
+    if (GRP_R & file.mode){
+        printf('r');
+    } else {
+        printf('-');
+    }
+    if (GRP_W & file.mode){
+        printf('w');
+    } else {
+        printf('-');
+    }
+    if (GRP_X & file.mode){
+        printf('x');
+    } else {
+        printf('-');
+    }
+
+    if (USR_R & file.mode){
+        printf('r');
+    } else {
+        printf('-');
+    }
+    if (USR_W & file.mode){
+        printf('w');
+    } else {
+        printf('-');
+    }
+    if (USR_X & file.mode){
+        printf('x');
+    } else {
+        printf('-');
+    }
+
+    printf(" %9d", file.size);
+    if (print_filename){
+        printf(" %.60s", file.filename);
+        printf("\n");
+    }
+}
+
+void ext_fsinfo(struct fsinfo * fs){
+    struct superblock * sblk = malloc(sizeof(struct superblock));
+    fseek(fs->diskimage, 1024, SEEK_SET);
+    fread((void *) sblk, sizeof(struct superblock), 1, fs->diskimage);
+    fs->num_inodes = sblk->ninodes;
+    fs->inode_table_start_block = sblk->i_blocks + sblk->z_blocks + 2;
+    fs->blocksize = sblk->blocksize;
+    fs->zonesize = sblk->blocksize << sblk->log_zone_size;
+}
+
+void * collect_file(struct min_inode file, struct fsinfo fs, struct inode * inode_table){
+    void * foundfile = malloc(file.size), * dummy = malloc(fs.zonesize), * pos = foundfile;
+    int bytesleft, blocknum = 0;
+    struct inode * inode_actual = &inode_table[file.inum];
+    if (inode_table == NULL){
+        inode_table = get_inode_table(fs);
+    }
+    for (bytesleft = file.size; bytesleft > fs.blocksize; bytesleft -= fs.blocksize){
+        if (blocknum < 7){
+            fseek(fs.diskimage, (inode_actual->zone[blocknum] * fs.zonesize) + fs->offset, SEEK_SET);
+        } else if (blocknum <  / fs.zonesize)
+        fread(dummy, fs.zonesize, 1, fs.diskimage);
+        memcpy(foundfile, dummy, fs.zonesize);
+    }
+        
 }
