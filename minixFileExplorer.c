@@ -130,7 +130,7 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
         printVerbose(&verboseInode, INODE);
     }
 
-	return currentInode;
+    return currentInode;
 }
 
 /* Takes in the arguments and parses them */
