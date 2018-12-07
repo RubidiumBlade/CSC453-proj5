@@ -115,8 +115,12 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
         //check to make inodenum is >1 and <numinodes
         printf("debug::%s\n", pathName);
         if (!isdir(currentInode)) {
-            fprintf(stderr, "Current inode is not a directory!\n");
-            exit(EXIT_FAILURE);
+            if (isregfile(currentInode) && (strtok(NULL, "/") == NULL)){
+               break;
+            } else {
+               fprintf(stderr, "Current inode is not a directory!\n");
+               exit(EXIT_FAILURE);
+            }
         }
 
         if (*pathName) {
@@ -205,15 +209,14 @@ struct fsinfo parser(int argc, char * const * argv, int get) {
        exit(EXIT_FAILURE);
     }
     if (get){
-        fs.srcpath = malloc(strlen(argv[optind + 1]));
-        strcpy(fs.srcpath, argv[optind + 1]);
+        fs.filepath = malloc(strlen(argv[optind + 1]));
+        strcpy(fs.filepath, argv[optind + 1]);
         if (optind + 2 < argc) {
             fs.dstpath = malloc(strlen(argv[optind + 2]));
             strcpy(fs.dstpath, argv[optind + 2]);
         } else {
             fs.dstpath = NULL;
         }
-        fs.filepath = NULL;
     } else {
         if (optind + 1 < argc){
             fs.filepath = malloc(strlen(argv[optind + 1]));
