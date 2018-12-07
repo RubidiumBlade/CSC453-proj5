@@ -107,7 +107,7 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
     currentInode.mode = inodeTable[0].mode;
     currentInode.size = inodeTable[0].size;
 
-    printf("%s\n", fs->filepath);
+    //printf("%s\n", fs->filepath);
     //follow the filepath
     pathName = strtok(fs->filepath, "/");
     if (pathName != NULL){
@@ -155,6 +155,9 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
         struct inode verboseInode = inodeTable[inum-1];
         printVerbose(&verboseInode, INODE);
     }
+
+    //printf("%u\n", inodeTable);
+    fs->inodeTable = inodeTable;
 
     return currentInode;
 }
@@ -272,6 +275,7 @@ int read_directory(struct fsinfo fs, struct inode* inode_table, struct min_inode
     struct dir_entry * collected_file = collect_file(file, fs, inode_table);
     int i, inode_num, num_deleted = 0;
     for (i = 0; i < (file.size / sizeof(struct dir_entry)); i++){
+        //printf("%s\n", collected_file[i].name);
         inode_num = collected_file[i].inode;
         if (inode_num){
            strncpy(found_files[i].filename, collected_file[i].name, 60);
@@ -364,6 +368,7 @@ void * collect_file(struct min_inode file, struct fsinfo fs, struct inode* inode
     void * foundfile = malloc(file.size), * dummy = malloc(fs.zonesize), * pos = foundfile;
     int bytesleft, zonenum = 0, num_ino_idi = fs.zonesize / sizeof(uint32_t), hole;
     struct inode* inode_actual = &inode_table[file.inum-1];
+    //printf("%u\n", inode_table);
     uint32_t * indirect_table = malloc(fs.zonesize);
     if (inode_table == NULL){
         inode_table = get_inode_table(fs);
@@ -373,6 +378,7 @@ void * collect_file(struct min_inode file, struct fsinfo fs, struct inode* inode
         hole = FALSE;
         if (zonenum < 7){ /* if in direct zones */
             /* just seek to the correct zone */
+            //printf("%d\n", inode_actual->size);
             if (inode_actual->zone[zonenum]){
                 fseek(fs.diskimage, (inode_actual->zone[zonenum] * fs.zonesize) + fs.offset, SEEK_SET);
             } else {
