@@ -31,7 +31,8 @@ int minget(struct fsinfo fs) {
 	}
 
 	else {
-		fprintf(stderr, "ERROR: destination is not a file. Exiting...\n");
+		fprintf(stderr, 
+                      "ERROR: destination is not a file. Exiting...\n");
 		return -1;
 	}
 }

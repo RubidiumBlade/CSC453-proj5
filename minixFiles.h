@@ -121,9 +121,11 @@ int fileValidity(char * file);
 struct min_inode traverseFiles(struct fsinfo * fs);
 int isdir(struct min_inode amiadir); /* done */
 int isregfile(struct min_inode amiregfile); /* done */
-int read_directory(struct fsinfo fs, struct inode * inode_table, struct min_inode file, struct min_inode * found_files); /* done */
+int read_directory(struct fsinfo fs, struct inode * inode_table,
+      struct min_inode file, struct min_inode * found_files); /* done */
 void printfile(struct min_inode file, int print_filename); /* printfile */
-void * collect_file(struct min_inode file, struct fsinfo fs, struct inode * inode_table); /* done */
+void * collect_file(struct min_inode file, struct fsinfo fs,
+      struct inode * inode_table); /* done */
 struct inode * get_inode_table(struct fsinfo fs); /* done */
 void ext_fsinfo(struct fsinfo * fs); /* depricated */
 void printHelpText(int get);

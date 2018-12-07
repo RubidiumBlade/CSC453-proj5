@@ -29,7 +29,8 @@ int main(int argc, char* const *argv){
         printf("\n");
         exit(EXIT_SUCCESS);
     } else {
-        fprintf(stderr, "The specified file is not a regular file or a directory.\n");
+        fprintf(stderr, 
+              "The specified file is not a regular file or a directory.\n");
         exit(EXIT_FAILURE);
     }
 
