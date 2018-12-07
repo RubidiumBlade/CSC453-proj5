@@ -5,26 +5,27 @@
 struct partitionTable partitionValidity(FILE * diskImage, int part,
                                          unsigned int offset) {
     unsigned int firstPartition = 0x1BE + offset;
-    unsigned int validityBits = firstPartition + sizeof(partitionTable);
+    unsigned int validityBits = firstPartition +sizeof(struct partitionTable)*4;
     unsigned int currentPartition = firstPartition;
+
     //byte values that indicate if partition table is valid
     const unsigned int validityByte1 = 0x55;
     const unsigned int validityByte2 = 0xAA;
     struct partitionTable * partTable = malloc(sizeof(struct partitionTable));
-    void * testByte1 = malloc(sizeof(int));
-    void * testByte2 = malloc(sizeof(int));
+    int * testByte1 = malloc(sizeof(int));
+    int * testByte2 = malloc(sizeof(int));
     int i;
 
     //check to see if partition table it valid, if not exit
     fseek(diskImage, validityBits, SEEK_SET);
-    fread(testByte1, sizeof(int), 1, diskImage);
-    if (*(int *)testByte1 != validityByte1) {
+    fread(testByte1, 1, 1, diskImage);
+    if (*testByte1 != validityByte1) {
         fprintf(stderr, "Partition Table is invalid!\n");
         exit(EXIT_FAILURE);
     }
 
-    fread(testByte2, sizeof(int), 1, diskImage);
-    if(*(int *)testByte2 != validityByte2) {
+    fread(testByte2, 1, 1, diskImage);
+    if(*testByte2 != validityByte2) {
         fprintf(stderr, "Partition Table is invalid!\n");
         exit(EXIT_FAILURE);
     }
@@ -44,7 +45,7 @@ struct partitionTable partitionValidity(FILE * diskImage, int part,
     }
 
     return *partTable;
-}
+} 
 
 /* traverse the filesystem until you find the requested file/directory */
 struct min_inode traverseFiles(struct fsinfo * fs) {
@@ -52,7 +53,7 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
     //if subpart call partitionTable(subpart, partition.start)
     struct partitionTable partTable;
     unsigned int startByte = 0;
-    if (fs->part > 0) {
+    if (fs->part >= 0) {
         partTable = partitionValidity(fs->diskimage, fs->part, 0);
         //multiply by 512 because that's the size of a sector
         startByte = partTable.lFirst * 512;
@@ -61,7 +62,7 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
             printVerbose(&partTable, PARTITION);
     }
 
-    if (fs->subpart > 0) {
+    if (fs->subpart >= 0) {
         partTable = partitionValidity(fs->diskimage, fs->subpart, startByte);
         //multiply by 512 because that's the size of a sector
         startByte = partTable.lFirst * 512;
@@ -177,7 +178,7 @@ struct fsinfo parser(int argc, char * const * argv, int get) {
         }
         if (arg == 'p') {
             fs.part = strtol(optarg, NULL, 10);
-            if (fs.part == 0){
+            if (fs.part < 0){
                 fprintf(stderr, "Option -p requires an integer argument.");
                 printHelpText(get);
                 exit(EXIT_FAILURE);
@@ -190,7 +191,7 @@ struct fsinfo parser(int argc, char * const * argv, int get) {
                 exit(EXIT_FAILURE);
             }
             fs.subpart = strtol(optarg, NULL, 10);
-            if (fs.part == 0){
+            if (fs.part < 0){
                 fprintf(stderr, "Option -s requires an integer argument.");
                 printHelpText(get);
                 exit(EXIT_FAILURE);
