@@ -99,6 +99,7 @@ struct fsinfo {
     int blocksize;
     int zonesize;
     int offset;
+    struct inode * inodeTable;
 };
 
 struct min_inode {

@@ -3,20 +3,20 @@
 int main(int argc, char* const *argv){
     struct min_inode * files = NULL;
     int numfiles, i;
-    struct inode* inode_table;
     
     struct fsinfo fs = parser(argc, argv, FALSE);
-
-    inode_table = get_inode_table(fs);
 
     struct min_inode file_me = traverseFiles(&fs);
     files = malloc(file_me.size);
 
     if (isdir(file_me)){
-        numfiles = read_directory(fs, inode_table, file_me, files);
+        numfiles = read_directory(fs, fs.inodeTable, file_me, files);
         printf(fs.filepath);
         printf(":\n");
+
+        printf("%d\n", numfiles);
         for (i = 0; i < numfiles; i++){
+            printf("%d\n", files[i].inum);
            if (files[i].inum){
             printfile(files[i], TRUE);
            }

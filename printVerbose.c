@@ -15,7 +15,7 @@ int printVerbose(void * printInfo_v, int mode) {
 			fprintf(stderr, "   i_blocks: %d\n", printInfo_su->i_blocks);
 			fprintf(stderr, "   z_blocks: %d\n", printInfo_su->z_blocks);
 			fprintf(stderr, "   firstdata: %d\n", printInfo_su->firstdata);
-			fprintf(stderr, "   log_zone_size: %d\n", printInfo_su->log_zone_size);
+			fprintf(stderr, "   zone_size: %d\n", printInfo_su->blocksize << printInfo_su->log_zone_size);
 			fprintf(stderr, "   pad2: %d\n", printInfo_su->pad2);
 			fprintf(stderr, "   max_file: %d\n", printInfo_su->max_file);
 			fprintf(stderr, "   zones: %d\n", printInfo_su->zones);
