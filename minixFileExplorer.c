@@ -72,6 +72,7 @@ struct min_inode traverseFiles(struct fsinfo * fs) {
     }
 
     //find superblock, start loc plus 1024
+    fs->offset = startByte;
     startByte += 1024;
 
     //fill superblock struct, and relevant info in fsinfo struct
